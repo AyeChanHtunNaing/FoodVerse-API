@@ -9,8 +9,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
@@ -49,10 +47,6 @@ public class Restaurant {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private RestaurantStatus status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
 
     @Builder.Default
     @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
