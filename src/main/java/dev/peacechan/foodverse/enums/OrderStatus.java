@@ -1,10 +1,8 @@
 package dev.peacechan.foodverse.enums;
 
 public enum OrderStatus {
-    PENDING,
-    CONFIRMED,
+    PLACED,
     PREPARING,
-    DELIVERING,
-    COMPLETED,
+    DELIVERED,
     CANCELLED
 }

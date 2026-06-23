@@ -1,0 +1,182 @@
+package dev.peacechan.foodverse.order.service;
+
+import dev.peacechan.foodverse.common.exception.BadRequestException;
+import dev.peacechan.foodverse.common.exception.ResourceNotFoundException;
+import dev.peacechan.foodverse.entity.CustomerProfile;
+import dev.peacechan.foodverse.entity.Menu;
+import dev.peacechan.foodverse.entity.Order;
+import dev.peacechan.foodverse.entity.OrderItem;
+import dev.peacechan.foodverse.entity.Restaurant;
+import dev.peacechan.foodverse.entity.User;
+import dev.peacechan.foodverse.enums.MenuStatus;
+import dev.peacechan.foodverse.enums.OrderStatus;
+import dev.peacechan.foodverse.enums.RestaurantStatus;
+import dev.peacechan.foodverse.enums.UserRole;
+import dev.peacechan.foodverse.order.dto.CreateOrderItemRequest;
+import dev.peacechan.foodverse.order.dto.CreateOrderRequest;
+import dev.peacechan.foodverse.order.dto.OrderResponse;
+import dev.peacechan.foodverse.order.dto.UpdateOrderStatusRequest;
+import dev.peacechan.foodverse.order.mapper.OrderMapper;
+import dev.peacechan.foodverse.repository.MenuRepository;
+import dev.peacechan.foodverse.repository.OrderRepository;
+import dev.peacechan.foodverse.repository.RestaurantRepository;
+import dev.peacechan.foodverse.repository.UserRepository;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final MenuRepository menuRepository;
+    private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
+
+    @Transactional
+    public OrderResponse placeOrder(String email, CreateOrderRequest request) {
+        User user = getCustomerUserByEmail(email);
+        CustomerProfile customerProfile = getCustomerProfile(user);
+        Restaurant restaurant = getOpenRestaurantById(request.restaurantId());
+        validateNoDuplicateMenus(request.items());
+
+        Order order = Order.builder()
+                .orderNumber(generateOrderNumber())
+                .status(OrderStatus.PLACED)
+                .orderedAt(LocalDateTime.now())
+                .customerProfile(customerProfile)
+                .restaurant(restaurant)
+                .build();
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (CreateOrderItemRequest itemRequest : request.items()) {
+            Menu menu = getAvailableMenu(itemRequest.menuId(), restaurant.getId());
+            OrderItem orderItem = orderMapper.toOrderItem(order, menu, itemRequest.quantity());
+            orderItems.add(orderItem);
+            totalAmount = totalAmount.add(orderItem.getLineTotal());
+        }
+
+        order.setOrderItems(orderItems);
+        order.setTotalAmount(totalAmount);
+
+        return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOwnOrder(Long orderId, String email) {
+        return orderMapper.toResponse(getOrderByIdAndOwner(orderId, email));
+    }
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(Long orderId) {
+        return orderMapper.toResponse(getOrderById(orderId));
+    }
+
+    @Transactional
+    public OrderResponse cancelOwnOrder(Long orderId, String email) {
+        Order order = getOrderByIdAndOwner(orderId, email);
+        if (order.getStatus() != OrderStatus.PLACED) {
+            throw new BadRequestException("Only placed orders can be cancelled");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderResponse updateStatus(Long orderId, UpdateOrderStatusRequest request) {
+        Order order = getOrderById(orderId);
+        validateStatusTransition(order.getStatus(), request.status());
+        order.setStatus(request.status());
+        return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        if (currentStatus == newStatus) {
+            throw new BadRequestException("Order is already in status: " + newStatus.name());
+        }
+
+        EnumSet<OrderStatus> allowedStatuses = switch (currentStatus) {
+            case PLACED -> EnumSet.of(OrderStatus.PREPARING, OrderStatus.CANCELLED);
+            case PREPARING -> EnumSet.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED);
+            case DELIVERED, CANCELLED -> EnumSet.noneOf(OrderStatus.class);
+        };
+
+        if (!allowedStatuses.contains(newStatus)) {
+            throw new BadRequestException(
+                    "Invalid order status transition from " + currentStatus.name() + " to " + newStatus.name()
+            );
+        }
+    }
+
+    private void validateNoDuplicateMenus(List<CreateOrderItemRequest> items) {
+        Set<Long> menuIds = new HashSet<>();
+        for (CreateOrderItemRequest item : items) {
+            if (!menuIds.add(item.menuId())) {
+                throw new BadRequestException("Duplicate menu items are not allowed in one order");
+            }
+        }
+    }
+
+    private User getCustomerUserByEmail(String email) {
+        return userRepository.findByEmailAndRole(email, UserRole.USER)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found for email: " + email));
+    }
+
+    private CustomerProfile getCustomerProfile(User user) {
+        if (user.getCustomerProfile() == null) {
+            throw new BadRequestException("Customer profile is required before placing an order");
+        }
+        return user.getCustomerProfile();
+    }
+
+    private Restaurant getOpenRestaurantById(Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + restaurantId));
+
+        if (restaurant.getStatus() != RestaurantStatus.OPEN) {
+            throw new BadRequestException("Restaurant is not open for ordering");
+        }
+
+        return restaurant;
+    }
+
+    private Menu getAvailableMenu(Long menuId, Long restaurantId) {
+        Menu menu = menuRepository.findByIdAndRestaurantId(menuId, restaurantId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Menu not found with id: " + menuId + " in restaurant: " + restaurantId
+                ));
+
+        if (menu.getStatus() != MenuStatus.AVAILABLE) {
+            throw new BadRequestException("Menu is not available for ordering: " + menu.getName());
+        }
+
+        return menu;
+    }
+
+    private Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+    }
+
+    private Order getOrderByIdAndOwner(Long orderId, String email) {
+        return orderRepository.findByIdAndCustomerProfileUserEmail(orderId, email)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+    }
+
+    private String generateOrderNumber() {
+        return "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+}
