@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreateOrderRequest(
-        @NotNull
+        @NotNull(message = "Restaurant id is required")
         Long restaurantId,
-        @NotEmpty
+        @NotEmpty(message = "Order items must not be empty")
         List<@Valid CreateOrderItemRequest> items
 ) {
 }

@@ -9,16 +9,16 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public record UpdateMenuRequest(
-        @NotBlank
-        @Size(max = 150)
+        @NotBlank(message = "Menu name is required")
+        @Size(max = 150, message = "Menu name must not exceed 150 characters")
         String name,
-        @Size(max = 500)
+        @Size(max = 500, message = "Description must not exceed 500 characters")
         String description,
-        @NotNull
-        @DecimalMin(value = "0.00")
-        @Digits(integer = 8, fraction = 2)
+        @NotNull(message = "Price is required")
+        @DecimalMin(value = "0.00", message = "Price must be greater than or equal to 0.00")
+        @Digits(integer = 8, fraction = 2, message = "Price must have up to 8 integer digits and 2 decimals")
         BigDecimal price,
-        @NotNull
+        @NotNull(message = "Menu status is required")
         MenuStatus status
 ) {
 }

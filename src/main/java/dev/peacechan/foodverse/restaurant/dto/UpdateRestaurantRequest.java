@@ -6,16 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record UpdateRestaurantRequest(
-        @NotBlank
-        @Size(max = 150)
+        @NotBlank(message = "Restaurant name is required")
+        @Size(max = 150, message = "Restaurant name must not exceed 150 characters")
         String name,
-        @NotBlank
-        @Size(max = 255)
+        @NotBlank(message = "Address is required")
+        @Size(max = 255, message = "Address must not exceed 255 characters")
         String address,
-        @NotBlank
-        @Size(max = 20)
+        @NotBlank(message = "Phone number is required")
+        @Size(max = 20, message = "Phone number must not exceed 20 characters")
         String phoneNumber,
-        @NotNull
+        @NotNull(message = "Restaurant status is required")
         RestaurantStatus status
 ) {
 }

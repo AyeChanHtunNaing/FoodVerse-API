@@ -4,7 +4,7 @@ import dev.peacechan.foodverse.enums.OrderStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateOrderStatusRequest(
-        @NotNull
+        @NotNull(message = "Order status is required")
         OrderStatus status
 ) {
 }
