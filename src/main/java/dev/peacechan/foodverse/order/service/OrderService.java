@@ -2,6 +2,7 @@ package dev.peacechan.foodverse.order.service;
 
 import dev.peacechan.foodverse.common.exception.BadRequestException;
 import dev.peacechan.foodverse.common.exception.ResourceNotFoundException;
+import dev.peacechan.foodverse.config.CacheNames;
 import dev.peacechan.foodverse.entity.CustomerProfile;
 import dev.peacechan.foodverse.entity.Menu;
 import dev.peacechan.foodverse.entity.Order;
@@ -30,6 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +46,7 @@ public class OrderService {
     private final MenuRepository menuRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public OrderResponse placeOrder(String email, CreateOrderRequest request) {
@@ -71,20 +76,25 @@ public class OrderService {
         order.setOrderItems(orderItems);
         order.setTotalAmount(totalAmount);
 
-        return orderMapper.toResponse(orderRepository.save(order));
+        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        evictOrderCaches(response.id(), email);
+        return response;
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.OWN_ORDERS, key = "#email + '::' + #orderId")
     public OrderResponse getOwnOrder(Long orderId, String email) {
         return orderMapper.toResponse(getOrderByIdAndOwner(orderId, email));
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ORDERS, key = "#orderId")
     public OrderResponse getOrder(Long orderId) {
         return orderMapper.toResponse(getOrderById(orderId));
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.ORDERS, key = "#orderId")
     public OrderResponse cancelOwnOrder(Long orderId, String email) {
         Order order = getOrderByIdAndOwner(orderId, email);
         if (order.getStatus() != OrderStatus.PLACED) {
@@ -92,15 +102,27 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELLED);
-        return orderMapper.toResponse(orderRepository.save(order));
+        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        evictOrderCaches(orderId, email);
+        return response;
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.ORDERS, key = "#orderId")
     public OrderResponse updateStatus(Long orderId, UpdateOrderStatusRequest request) {
         Order order = getOrderById(orderId);
         validateStatusTransition(order.getStatus(), request.status());
         order.setStatus(request.status());
-        return orderMapper.toResponse(orderRepository.save(order));
+        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        evictOrderCaches(orderId, order.getCustomerProfile().getUser().getEmail());
+        return response;
+    }
+
+    private void evictOrderCaches(Long orderId, String email) {
+        redisTemplate.delete(Set.of(
+                CacheNames.ORDERS + "::" + orderId,
+                CacheNames.OWN_ORDERS + "::" + email + "::" + orderId
+        ));
     }
 
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
