@@ -13,6 +13,7 @@ import dev.peacechan.foodverse.enums.MenuStatus;
 import dev.peacechan.foodverse.enums.OrderStatus;
 import dev.peacechan.foodverse.enums.RestaurantStatus;
 import dev.peacechan.foodverse.enums.UserRole;
+import dev.peacechan.foodverse.email.service.EmailService;
 import dev.peacechan.foodverse.order.dto.CreateOrderItemRequest;
 import dev.peacechan.foodverse.order.dto.CreateOrderRequest;
 import dev.peacechan.foodverse.order.dto.OrderResponse;
@@ -47,6 +48,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final EmailService emailService;
 
     @Transactional
     public OrderResponse placeOrder(String email, CreateOrderRequest request) {
@@ -76,7 +78,9 @@ public class OrderService {
         order.setOrderItems(orderItems);
         order.setTotalAmount(totalAmount);
 
-        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        emailService.sendOrderCreatedEmail(savedOrder);
+        OrderResponse response = orderMapper.toResponse(savedOrder);
         evictOrderCaches(response.id(), email);
         return response;
     }
@@ -113,7 +117,9 @@ public class OrderService {
         Order order = getOrderById(orderId);
         validateStatusTransition(order.getStatus(), request.status());
         order.setStatus(request.status());
-        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        emailService.sendOrderUpdatedEmail(savedOrder);
+        OrderResponse response = orderMapper.toResponse(savedOrder);
         evictOrderCaches(orderId, order.getCustomerProfile().getUser().getEmail());
         return response;
     }
