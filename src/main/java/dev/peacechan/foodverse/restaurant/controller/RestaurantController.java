@@ -1,12 +1,18 @@
 package dev.peacechan.foodverse.restaurant.controller;
 
+import dev.peacechan.foodverse.common.payload.ApiErrorResponse;
 import dev.peacechan.foodverse.restaurant.dto.CreateRestaurantRequest;
 import dev.peacechan.foodverse.restaurant.dto.RestaurantResponse;
 import dev.peacechan.foodverse.restaurant.dto.UpdateRestaurantRequest;
 import dev.peacechan.foodverse.restaurant.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/restaurants")
 @RequiredArgsConstructor
+@Tag(name = "Restaurants", description = "Restaurant management endpoints.")
+@SecurityRequirement(name = "bearerAuth")
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
@@ -38,8 +46,16 @@ public class RestaurantController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Restaurant created successfully"),
-            @ApiResponse(responseCode = "400", description = "Request validation failed"),
-            @ApiResponse(responseCode = "403", description = "Only admins can create restaurants")
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Request validation failed",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Only admins can create restaurants",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            )
     })
     public RestaurantResponse createRestaurant(@Valid @RequestBody CreateRestaurantRequest request) {
         return restaurantService.createRestaurant(request);
@@ -53,9 +69,21 @@ public class RestaurantController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Restaurant updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Request validation failed"),
-            @ApiResponse(responseCode = "403", description = "Only admins can update restaurants"),
-            @ApiResponse(responseCode = "404", description = "Restaurant not found")
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Request validation failed",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Only admins can update restaurants",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Restaurant not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            )
     })
     public RestaurantResponse updateRestaurant(
             @PathVariable Long restaurantId,
@@ -73,8 +101,16 @@ public class RestaurantController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Restaurant deleted successfully"),
-            @ApiResponse(responseCode = "403", description = "Only admins can delete restaurants"),
-            @ApiResponse(responseCode = "404", description = "Restaurant not found")
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Only admins can delete restaurants",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Restaurant not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            )
     })
     public void deleteRestaurant(@PathVariable Long restaurantId) {
         restaurantService.deleteRestaurant(restaurantId);
@@ -88,8 +124,16 @@ public class RestaurantController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Restaurant returned successfully"),
-            @ApiResponse(responseCode = "403", description = "Only authenticated admins or users can view restaurants"),
-            @ApiResponse(responseCode = "404", description = "Restaurant not found")
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Only authenticated admins or users can view restaurants",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Restaurant not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            )
     })
     public RestaurantResponse getRestaurant(@PathVariable Long restaurantId) {
         return restaurantService.getRestaurant(restaurantId);
@@ -102,8 +146,16 @@ public class RestaurantController {
             description = "Returns the full restaurant list. Available to authenticated admins and users."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Restaurant list returned successfully"),
-            @ApiResponse(responseCode = "403", description = "Only authenticated admins or users can view restaurant lists")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Restaurant list returned successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = RestaurantResponse.class)))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Only authenticated admins or users can view restaurant lists",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            )
     })
     public List<RestaurantResponse> getRestaurants() {
         return restaurantService.getRestaurants();
