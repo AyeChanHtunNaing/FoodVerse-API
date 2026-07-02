@@ -1,7 +1,7 @@
 package dev.peacechan.foodverse.email.service;
 
-import dev.peacechan.foodverse.entity.Order;
 import dev.peacechan.foodverse.enums.OrderStatus;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,20 +22,33 @@ public class EmailService {
     private String fromEmail;
 
     @Async("mailTaskExecutor")
-    public void sendOrderCreatedEmail(Order order) {
+    public void sendOrderCreatedEmail(
+            String to,
+            String fullName,
+            String orderNumber,
+            OrderStatus status,
+            BigDecimal totalAmount,
+            Long restaurantId
+    ) {
         sendEmail(
-                order.getCustomerProfile().getUser().getEmail(),
-                "Order Created - " + order.getOrderNumber(),
-                buildOrderCreatedBody(order)
+                to,
+                "Order Created - " + orderNumber,
+                buildOrderCreatedBody(fullName, orderNumber, status, totalAmount, restaurantId)
         );
     }
 
     @Async("mailTaskExecutor")
-    public void sendOrderUpdatedEmail(Order order) {
+    public void sendOrderUpdatedEmail(
+            String to,
+            String fullName,
+            String orderNumber,
+            OrderStatus status,
+            BigDecimal totalAmount
+    ) {
         sendEmail(
-                order.getCustomerProfile().getUser().getEmail(),
-                "Order Updated - " + order.getOrderNumber(),
-                buildOrderUpdatedBody(order)
+                to,
+                "Order Updated - " + orderNumber,
+                buildOrderUpdatedBody(fullName, orderNumber, status, totalAmount)
         );
     }
 
@@ -52,7 +65,13 @@ public class EmailService {
         }
     }
 
-    private String buildOrderCreatedBody(Order order) {
+    private String buildOrderCreatedBody(
+            String fullName,
+            String orderNumber,
+            OrderStatus status,
+            BigDecimal totalAmount,
+            Long restaurantId
+    ) {
         return """
                 Hello %s,
 
@@ -65,15 +84,20 @@ public class EmailService {
 
                 Thank you for choosing Foodverse.
                 """.formatted(
-                order.getCustomerProfile().getUser().getFullName(),
-                order.getOrderNumber(),
-                order.getStatus().name(),
-                order.getTotalAmount(),
-                order.getRestaurant().getId()
+                fullName,
+                orderNumber,
+                status.name(),
+                totalAmount,
+                restaurantId
         );
     }
 
-    private String buildOrderUpdatedBody(Order order) {
+    private String buildOrderUpdatedBody(
+            String fullName,
+            String orderNumber,
+            OrderStatus status,
+            BigDecimal totalAmount
+    ) {
         return """
                 Hello %s,
 
@@ -85,10 +109,10 @@ public class EmailService {
 
                 Thank you for choosing Foodverse.
                 """.formatted(
-                order.getCustomerProfile().getUser().getFullName(),
-                order.getOrderNumber(),
-                formatStatus(order.getStatus()),
-                order.getTotalAmount()
+                fullName,
+                orderNumber,
+                formatStatus(status),
+                totalAmount
         );
     }
 

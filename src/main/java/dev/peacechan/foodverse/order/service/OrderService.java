@@ -79,7 +79,14 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order);
-        emailService.sendOrderCreatedEmail(savedOrder);
+        emailService.sendOrderCreatedEmail(
+                user.getEmail(),
+                user.getFullName(),
+                savedOrder.getOrderNumber(),
+                savedOrder.getStatus(),
+                savedOrder.getTotalAmount(),
+                restaurant.getId()
+        );
         OrderResponse response = orderMapper.toResponse(savedOrder);
         evictOrderCaches(response.id(), email);
         return response;
@@ -118,9 +125,17 @@ public class OrderService {
         validateStatusTransition(order.getStatus(), request.status());
         order.setStatus(request.status());
         Order savedOrder = orderRepository.save(order);
-        emailService.sendOrderUpdatedEmail(savedOrder);
+        User customer = order.getCustomerProfile().getUser();
+        String customerEmail = customer.getEmail();
+        emailService.sendOrderUpdatedEmail(
+                customerEmail,
+                customer.getFullName(),
+                savedOrder.getOrderNumber(),
+                savedOrder.getStatus(),
+                savedOrder.getTotalAmount()
+        );
         OrderResponse response = orderMapper.toResponse(savedOrder);
-        evictOrderCaches(orderId, order.getCustomerProfile().getUser().getEmail());
+        evictOrderCaches(orderId, customerEmail);
         return response;
     }
 

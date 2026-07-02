@@ -1,8 +1,10 @@
 package dev.peacechan.foodverse.restaurant.service;
 
+import dev.peacechan.foodverse.common.exception.ConflictException;
 import dev.peacechan.foodverse.common.exception.ResourceNotFoundException;
 import dev.peacechan.foodverse.config.CacheNames;
 import dev.peacechan.foodverse.entity.Restaurant;
+import dev.peacechan.foodverse.repository.OrderRepository;
 import dev.peacechan.foodverse.repository.RestaurantRepository;
 import dev.peacechan.foodverse.restaurant.dto.CreateRestaurantRequest;
 import dev.peacechan.foodverse.restaurant.dto.RestaurantResponse;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
+    private final OrderRepository orderRepository;
     private final RestaurantMapper restaurantMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -47,6 +50,9 @@ public class RestaurantService {
     @CacheEvict(cacheNames = CacheNames.RESTAURANT, key = "#restaurantId")
     public void deleteRestaurant(Long restaurantId) {
         Restaurant restaurant = getRestaurantById(restaurantId);
+        if (orderRepository.existsByRestaurantId(restaurantId)) {
+            throw new ConflictException("Restaurant cannot be deleted because it has existing orders");
+        }
         restaurantRepository.delete(restaurant);
         evictRestaurantRelatedCaches(restaurantId);
     }

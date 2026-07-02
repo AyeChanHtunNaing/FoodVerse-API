@@ -1,5 +1,6 @@
 package dev.peacechan.foodverse.menu.service;
 
+import dev.peacechan.foodverse.common.exception.ConflictException;
 import dev.peacechan.foodverse.common.exception.ResourceNotFoundException;
 import dev.peacechan.foodverse.config.CacheNames;
 import dev.peacechan.foodverse.entity.Menu;
@@ -9,6 +10,7 @@ import dev.peacechan.foodverse.menu.dto.MenuResponse;
 import dev.peacechan.foodverse.menu.dto.UpdateMenuRequest;
 import dev.peacechan.foodverse.menu.mapper.MenuMapper;
 import dev.peacechan.foodverse.repository.MenuRepository;
+import dev.peacechan.foodverse.repository.OrderItemRepository;
 import dev.peacechan.foodverse.repository.RestaurantRepository;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +27,7 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final RestaurantRepository restaurantRepository;
+    private final OrderItemRepository orderItemRepository;
     private final MenuMapper menuMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -51,7 +54,11 @@ public class MenuService {
     @CacheEvict(cacheNames = CacheNames.MENU, key = "#menuId + '::' + #restaurantId")
     public void deleteMenu(Long restaurantId, Long menuId) {
         getRestaurantById(restaurantId);
-        menuRepository.delete(getMenuByIdAndRestaurantId(menuId, restaurantId));
+        Menu menu = getMenuByIdAndRestaurantId(menuId, restaurantId);
+        if (orderItemRepository.existsByMenuId(menuId)) {
+            throw new ConflictException("Menu cannot be deleted because it is used by existing orders");
+        }
+        menuRepository.delete(menu);
         evictMenuRelatedCaches(restaurantId, menuId);
     }
 
