@@ -1,6 +1,6 @@
 package dev.peacechan.foodverse.restaurant.dto;
 
-import dev.peacechan.foodverse.enums.RestaurantStatus;
+import dev.peacechan.foodverse.restaurant.enums.RestaurantStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

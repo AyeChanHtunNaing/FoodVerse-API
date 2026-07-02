@@ -1,5 +1,7 @@
-package dev.peacechan.foodverse.entity;
+package dev.peacechan.foodverse.customer.entity;
 
+import dev.peacechan.foodverse.auth.entity.User;
+import dev.peacechan.foodverse.order.entity.Order;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,4 +1,4 @@
-package dev.peacechan.foodverse.enums;
+package dev.peacechan.foodverse.order.enums;
 
 public enum OrderStatus {
     PLACED,

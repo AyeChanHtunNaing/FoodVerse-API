@@ -1,8 +1,8 @@
 package dev.peacechan.foodverse.order.service;
 
-import dev.peacechan.foodverse.entity.Order;
-import dev.peacechan.foodverse.enums.OrderStatus;
-import dev.peacechan.foodverse.repository.OrderRepository;
+import dev.peacechan.foodverse.order.entity.Order;
+import dev.peacechan.foodverse.order.enums.OrderStatus;
+import dev.peacechan.foodverse.order.repository.OrderRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

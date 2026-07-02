@@ -1,7 +1,7 @@
 package dev.peacechan.foodverse.security;
 
-import dev.peacechan.foodverse.entity.User;
-import dev.peacechan.foodverse.repository.UserRepository;
+import dev.peacechan.foodverse.auth.entity.User;
+import dev.peacechan.foodverse.auth.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

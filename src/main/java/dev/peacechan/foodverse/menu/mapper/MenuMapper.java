@@ -1,7 +1,7 @@
 package dev.peacechan.foodverse.menu.mapper;
 
-import dev.peacechan.foodverse.entity.Menu;
-import dev.peacechan.foodverse.entity.Restaurant;
+import dev.peacechan.foodverse.menu.entity.Menu;
+import dev.peacechan.foodverse.restaurant.entity.Restaurant;
 import dev.peacechan.foodverse.menu.dto.CreateMenuRequest;
 import dev.peacechan.foodverse.menu.dto.MenuResponse;
 import dev.peacechan.foodverse.menu.dto.UpdateMenuRequest;

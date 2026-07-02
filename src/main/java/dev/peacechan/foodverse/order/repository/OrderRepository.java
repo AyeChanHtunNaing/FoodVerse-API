@@ -1,7 +1,7 @@
-package dev.peacechan.foodverse.repository;
+package dev.peacechan.foodverse.order.repository;
 
-import dev.peacechan.foodverse.entity.Order;
-import dev.peacechan.foodverse.enums.OrderStatus;
+import dev.peacechan.foodverse.order.entity.Order;
+import dev.peacechan.foodverse.order.enums.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

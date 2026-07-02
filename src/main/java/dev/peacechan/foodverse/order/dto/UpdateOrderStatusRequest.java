@@ -1,6 +1,6 @@
 package dev.peacechan.foodverse.order.dto;
 
-import dev.peacechan.foodverse.enums.OrderStatus;
+import dev.peacechan.foodverse.order.enums.OrderStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 

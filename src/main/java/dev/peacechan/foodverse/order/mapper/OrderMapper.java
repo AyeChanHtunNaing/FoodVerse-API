@@ -1,8 +1,8 @@
 package dev.peacechan.foodverse.order.mapper;
 
-import dev.peacechan.foodverse.entity.Menu;
-import dev.peacechan.foodverse.entity.Order;
-import dev.peacechan.foodverse.entity.OrderItem;
+import dev.peacechan.foodverse.menu.entity.Menu;
+import dev.peacechan.foodverse.order.entity.Order;
+import dev.peacechan.foodverse.order.entity.OrderItem;
 import dev.peacechan.foodverse.order.dto.OrderItemResponse;
 import dev.peacechan.foodverse.order.dto.OrderResponse;
 import java.math.BigDecimal;

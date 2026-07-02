@@ -1,6 +1,8 @@
-package dev.peacechan.foodverse.entity;
+package dev.peacechan.foodverse.order.entity;
 
-import dev.peacechan.foodverse.enums.OrderStatus;
+import dev.peacechan.foodverse.customer.entity.CustomerProfile;
+import dev.peacechan.foodverse.order.enums.OrderStatus;
+import dev.peacechan.foodverse.restaurant.entity.Restaurant;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

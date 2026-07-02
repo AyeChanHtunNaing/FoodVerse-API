@@ -1,6 +1,6 @@
 package dev.peacechan.foodverse.menu.dto;
 
-import dev.peacechan.foodverse.enums.MenuStatus;
+import dev.peacechan.foodverse.menu.enums.MenuStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;

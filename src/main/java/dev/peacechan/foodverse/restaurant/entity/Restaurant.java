@@ -1,7 +1,8 @@
-package dev.peacechan.foodverse.entity;
+package dev.peacechan.foodverse.restaurant.entity;
 
-import dev.peacechan.foodverse.enums.UserRole;
-import jakarta.persistence.CascadeType;
+import dev.peacechan.foodverse.menu.entity.Menu;
+import dev.peacechan.foodverse.order.entity.Order;
+import dev.peacechan.foodverse.restaurant.enums.RestaurantStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,8 +11,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,39 +23,38 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "restaurants")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class Restaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String fullName;
+    @Column(nullable = false, length = 150)
+    private String name;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
+    @Column(nullable = false, length = 255)
+    private String address;
 
     @Column(nullable = false, length = 20)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private UserRole role;
+    private RestaurantStatus status;
 
-    @Column(nullable = false)
-    private Boolean active;
+    @Builder.Default
+    @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
+    private List<Menu> menus = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private CustomerProfile customerProfile;
+    @Builder.Default
+    @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
+    private List<Order> orders = new ArrayList<>();
 }

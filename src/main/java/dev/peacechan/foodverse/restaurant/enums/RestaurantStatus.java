@@ -1,4 +1,4 @@
-package dev.peacechan.foodverse.enums;
+package dev.peacechan.foodverse.restaurant.enums;
 
 public enum RestaurantStatus {
     OPEN,

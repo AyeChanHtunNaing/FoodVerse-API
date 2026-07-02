@@ -3,9 +3,9 @@ package dev.peacechan.foodverse.customer.mapper;
 import dev.peacechan.foodverse.customer.dto.CreateCustomerRequest;
 import dev.peacechan.foodverse.customer.dto.CustomerResponse;
 import dev.peacechan.foodverse.customer.dto.UpdateOwnProfileRequest;
-import dev.peacechan.foodverse.entity.CustomerProfile;
-import dev.peacechan.foodverse.entity.User;
-import dev.peacechan.foodverse.enums.UserRole;
+import dev.peacechan.foodverse.customer.entity.CustomerProfile;
+import dev.peacechan.foodverse.auth.entity.User;
+import dev.peacechan.foodverse.auth.enums.UserRole;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 

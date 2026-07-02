@@ -1,6 +1,6 @@
-package dev.peacechan.foodverse.repository;
+package dev.peacechan.foodverse.menu.repository;
 
-import dev.peacechan.foodverse.entity.Menu;
+import dev.peacechan.foodverse.menu.entity.Menu;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

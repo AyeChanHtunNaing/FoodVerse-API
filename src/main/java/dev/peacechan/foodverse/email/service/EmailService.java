@@ -1,6 +1,6 @@
 package dev.peacechan.foodverse.email.service;
 
-import dev.peacechan.foodverse.enums.OrderStatus;
+import dev.peacechan.foodverse.order.enums.OrderStatus;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
