@@ -65,7 +65,7 @@ public class OrderController {
         return orderService.placeOrder(principal.getName(), request);
     }
 
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderId:\\d+}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get order", description = "Returns an order by id. Admin only.")
     @ApiResponses({
@@ -85,7 +85,7 @@ public class OrderController {
         return orderService.getOrder(orderId);
     }
 
-    @GetMapping("/me/{orderId}")
+    @GetMapping("/me/{orderId:\\d+}")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Get own order", description = "Returns one order belonging to the authenticated user.")
     @ApiResponses({
@@ -105,7 +105,7 @@ public class OrderController {
         return orderService.getOwnOrder(orderId, principal.getName());
     }
 
-    @PatchMapping("/me/{orderId}/cancel")
+    @PatchMapping("/me/{orderId:\\d+}/cancel")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Cancel own order", description = "Cancels an order belonging to the authenticated user.")
     @ApiResponses({
@@ -130,7 +130,7 @@ public class OrderController {
         return orderService.cancelOwnOrder(orderId, principal.getName());
     }
 
-    @PatchMapping("/{orderId}/status")
+    @PatchMapping("/{orderId:\\d+}/status")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update order status", description = "Updates the status of an existing order. Admin only.")
     @ApiResponses({
